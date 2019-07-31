@@ -1,0 +1,177 @@
+\documentclass{beamer}
+% Include page numbers
+\setbeamertemplate{footline}{\hfill\insertframenumber\hspace*{2mm}\vspace*{2mm}}
+
+\usetheme{Pittsburgh}
+
+% switch off the fancy navigation symbols
+\setbeamertemplate{navigation symbols}{}
+
+\usefonttheme[onlymath]{serif}
+\usepackage{isabelle,isabellesym}
+\usepackage{pgf}
+\usepackage{tikz}
+\usetikzlibrary{scopes}
+\usetikzlibrary{decorations}
+  \usetikzlibrary{decorations.pathmorphing}
+\usetikzlibrary{arrows}
+\usetikzlibrary{automata}
+\usetikzlibrary{positioning}
+\usetikzlibrary{chains}
+\usetikzlibrary{shapes.geometric}
+\usetikzlibrary{shapes.callouts}
+\usetikzlibrary{shapes.misc}
+\usetikzlibrary{fit}
+\usetikzlibrary{calc}
+\usepackage{pgfplots}
+\usepackage{cancel}
+
+\tikzset{>=latex}
+
+% further packages required for unusual symbols (see also
+% isabellesym.sty), use only when needed
+
+\usepackage{mathpartir}
+
+%\usepackage{amssymb}
+  %for \<leadsto>, \<box>, \<diamond>, \<sqsupset>, \<mho>, \<Join>,
+  %\<lhd>, \<lesssim>, \<greatersim>, \<lessapprox>, \<greaterapprox>,
+  %\<triangleq>, \<yen>, \<lozenge>
+
+%\usepackage{eurosym}
+  %for \<euro>
+
+%\usepackage[only,bigsqcap]{stmaryrd}
+  %for \<Sqinter>
+
+%\usepackage{eufrak}
+  %for \<AA> ... \<ZZ>, \<aa> ... \<zz> (also included in amssymb)
+
+%\usepackage{textcomp}
+  %for \<onequarter>, \<onehalf>, \<threequarters>, \<degree>, \<cent>,
+  %\<currency>
+
+% this should be the last package used
+% \usepackage{pdfsetup}
+
+% urls in roman style, theory text in math-similar italics
+% \urlstyle{rm}
+\isabellestyle{it}
+
+% for uniform font size
+%\renewcommand{\isastyle}{\isastyleminor}
+
+\isabellestylesl
+
+\def\isacolor{\color{blue}}
+
+\def\isastyle{\small\normalfont\slshape\isacolor}%
+\def\isastylett{\small\normalfont\ttfamily\isacolor}%
+\def\isastyleminor{\normalfont\slshape\isacolor}%
+\def\isastyleminortt{\normalfont\ttfamily\isacolor}%
+\def\isastylescript{\footnotesize\normalfont\slshape\isacolor}%
+
+
+\def\isactrlstarttext{}
+\def\isactrlendtext{}
+
+\newcommand\isainnerkeyword[1]{{\bf #1}}
+
+% for uniform font size
+%\renewcommand{\isastyleminor}{\rmfamily\itshape}
+%\renewcommand{\isastyle}{\isastyleminor}
+%\renewcommand{\isastyletext}{\normalsize\sf}
+
+% typeset underscore
+\renewcommand{\isacharunderscore}{\_}%
+% normal _ has no bold version, use tt _
+% both for theory snippets and for \isakeyword uses
+\renewcommand{\isacharunderscorekeyword}{\texttt{\char`_}}%
+\let\isakeywordold=\isakeyword
+\renewcommand{\isakeyword}[1]{\isakeywordold{\def\_{{\texttt{\char`_}}}#1}}
+
+\renewcommand{\isadigit}[1]{\ensuremath{#1}}
+
+\renewcommand{\isacharbackquoteopen}{\isacharbackquote}
+\renewcommand{\isacharbackquoteclose}{\isacharbackquote}
+
+\let\isacharprimeR=\isacharprime
+\newcommand{\isactrlisubprime}[1]{{$\sb{#1}\sp{\mskip3mu\prime}$}}
+
+\renewcommand{\isasymopen}{}
+\renewcommand{\isasymclose}{}
+
+
+\newcommand{\xsymbol}[1]{\texttt{\char`\\\char`<#1>}}
+
+\definecolor{darkblue}{rgb}{0.0,0.0,0.5}
+\newcommand<>{\high}[1]{{\color#2{blue}{#1}}}
+\newcommand<>{\bad}[1]{{\color#2{red}{#1}}}
+\newcommand{\gray}[1]{\textcolor{gray}{#1}}
+
+\newcommand{\concept}[1]{\high{\emph{#1}}}
+\newcommand{\important}{{\Large \textbf{!}}}
+
+\newcommand{\revealbeamer}[1]{\uncover<+->{\invisible<handout>{#1}}}
+
+\newcommand{\filepage}[2]
+{\title{\textcolor{darkblue}{#1}}
+\author{#2}\institute{}\date{}
+\maketitle}
+
+\newcommand{\ttfilepage}[2]
+{\filepage{\texttt{#1}}{#2}}
+
+\newcommand{\thyfile}[2]
+{\ttfilepage{#1.thy}{#2}}
+
+\newcommand{\demofile}[2]
+{\thyfile{#1\char`\_Demo}{#2}}
+
+\newcommand{\afpentry}[1]
+{\filepage{\href{https://www.isa-afp.org}{Archive of Formal Proofs}}
+{\url{https://www.isa-afp.org/entries/#1.shtml}}}
+
+
+% Insert stretchable vspace that expands as wide as possible. Use to move stuff to the bottom of slide.
+\newcommand{\btVFill}{\vskip0pt plus 1filll}
+
+
+\renewcommand{\CancelColor}{\red}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\setbeamersize{text margin left=0.5cm,text margin right=0.5cm}
+
+
+
+
+
+\begin{document}
+
+\title{Functional Programming and Interactive Theorem Proving}
+\subtitle{with Isabelle/HOL}
+\author{Peter Lammich}
+\institute[]{%
+	School of Computer Science\\
+	The University of Manchester}
+\date{\the\year-\the\month-\the\day}
+\frame{\titlepage}
+\subtitle{}
+
+
+% sane default for proof documents
+\parindent 0pt\parskip 0.5ex
+
+% generated text of all theories
+\input{session}
+
+% optional bibliography
+%\bibliographystyle{abbrv}
+%\bibliography{root}
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:

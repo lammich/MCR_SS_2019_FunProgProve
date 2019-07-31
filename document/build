@@ -1,0 +1,46 @@
+#!/bin/bash
+
+# set -e
+
+FMT="$1"
+VARIANT="$2"
+
+export TEXFILE=Talk.tex
+cp $TEXFILE $TEXFILE.orig
+
+sed -i -re 's/\\isactrlstarttext/\n%%%STARTTEXT\n/;s/\\isactrlendtext/\n%%%ENDTEXT\n/' $TEXFILE
+
+sed -i -e 's/\\isa{\(\([^{}]\|{\([^{}]\)*}\)*\)}/\\isa{\n%%%STARTTEXT\n\1\n%%%ENDTEXT\n}/g' $TEXFILE
+
+sed -i -e 's/{\\isacharunderscore}/___ISACHARUNDERSCORE__/g' $TEXFILE
+
+sed -i -e 's/\\begin{isabelle}/\0\n%%%STARTTEXT\n/g;s/\\end{isabelle}/\n%%%ENDTEXT\n\0/' $TEXFILE
+
+
+gawk '
+  $0=="%%%STARTTEXT" { hl++; next }
+  $0=="%%%ENDTEXT" { if (hl>0) hl--; next }
+
+  {
+    if (hl>0) {
+      $0 = gensub(/\<(do|let|if|then|else|while|foreach|return|spec|select|assert|rec|case|of)\>/,"\\\\isainnerkeyword{\\1}","g")
+    
+      print $0 " %%% HL"
+    } else {
+      print $0
+    }
+  }
+
+' $TEXFILE > $TEXFILE.bak
+mv $TEXFILE.bak $TEXFILE
+
+sed -i -e 's/___ISACHARUNDERSCORE__/{\\isacharunderscore}/g' $TEXFILE
+
+
+rm -f ../document.pdf
+
+"$ISABELLE_TOOL" latex -o sty
+"$ISABELLE_TOOL" latex -o "$FMT"
+"$ISABELLE_TOOL" latex -o "$FMT"
+
+cp root.pdf ../../slides.pdf
