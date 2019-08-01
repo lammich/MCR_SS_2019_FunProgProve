@@ -111,15 +111,31 @@ section \<open>Introduction\<close>
 
 text \<open>\color{black}
   \begin{frame}{Introduction}
-    Programming and proving correct quicksort
+    Programs may have bugs. \pause These can have severe effects!
     \pause\medskip
     
-    using the Theorem Prover Isabelle/HOL
-    \<^url>\<open>https://isabelle.in.tum.de/\<close>
+    Hunting bugs: \pause Testing? \pause Not guaranteed to find them all!
+    \pause\medskip
+
+    Mathematical proof that program is correct. \pause Finds all bugs!
     \pause\medskip
     
-    download it and follow this lecture on your laptop!\\
-    Lecture Material: \<^url>\<open>https://github.com/lammich/MCR_SS_2019_FunProgProve\<close>
+    BUT: when done one paper, its likely to have errors in proof!
+    \pause\medskip
+
+    This lecture: Using a computer to check proofs
+  \end{frame}  
+    
+  \begin{frame}{Material}
+    The Theorem Prover Isabelle/HOL: \\
+      \<^url>\<open>https://isabelle.in.tum.de/\<close> \\
+    \smallskip
+    
+    Lecture Material:\\ 
+      \<^url>\<open>https://github.com/lammich/MCR_SS_2019_FunProgProve\<close>
+    \pause\medskip
+    
+    Download it and follow this lecture on your laptop!
     \pause\medskip
 
     Relax and enjoy! There is no exam on this lecture!
@@ -133,7 +149,8 @@ text \<open>\color{black}
       \<^item><+-> in C, C++, Java, BASIC, PASCAL
       \<^item><+-> in JavaScript
       \<^item><+-> in PHP, Python, Ruby, PERL
-      \<^item><+-> in Haskell, Scala, OCaml, SML, LISP, Scheme
+      \<^item><+-> in Haskell, Scala, OCaml, SML, LISP, Scheme, F\#
+      \<^item><+-> Others?
     \<^item><+-> Know what quicksort is  
     \<^item><+-> Know what (structural) induction means
     \<^item><+-> Have ever used an interactive theorem prover
@@ -206,10 +223,10 @@ text \<open>\color{black}
     @{thm[display] filter.simps(1) filter.simps(2)[where xs=l]}
     \pause\medskip
 
-    \<^term>\<open>filter (\<lambda>x. x\<le>4) l\<close>: Same as \<open>leq4\<close>
+    \<^term>\<open>filter (\<lambda>x. x\<le>(4::nat)) l\<close>: Same as \<open>leq4\<close>
     \pause\medskip
     
-    \<^term>\<open>(\<lambda>x. x\<le>4)\<close> is anonymous function, with parameter \<open>x\<close>.
+    \<^term>\<open>(\<lambda>x. x\<le>(4::nat))\<close> is anonymous function, with parameter \<open>x\<close>.
   
   \end{frame}
   
@@ -251,15 +268,17 @@ text \<open>\color{black}
   \thyfile{Demo}{Count and Sortedness}
   
   \begin{frame}{Quicksort}
+    \newcommand{\pp}{{\color{blue} p}}
+    \newcommand{\tx}[1]{\text{\color{black} #1}}
     Algorithm to sort a list
     \pause\medskip
-    
+
     Idea: 
-      \<^enum> pick pivot element \<open>p\<close> (e.g. first element of list)
-      \<^enum> partition list into elements \<open>\<le> p\<close> and \<open>> p\<close>
-      \<^enum> recursively sort partitions
+    \[\color{blue}
+      qs~(p \mathbin\# l) = qs~(\tx{elements $\le \pp$}) \mathbin@ [p] \mathbin@ qs~(\tx{elements $> \pp$})
+    \]
     
-    \pause\medskip
+    \pause
     \<^term>\<open>qs [3,2,5,4,7]\<close> \\
     = \pause \<^term>\<open>qs [2] @ [3] @ qs [5,4,7]\<close> \\
     = \pause \<^term>\<open>[2] @ [3] @ (qs [4] @ [5] @ qs [7])\<close> \\
@@ -278,8 +297,8 @@ text \<open>\color{black}
     What does it mean that quicksort is \high{correct}?
     \pause\medskip
 
-    \<^enum><+-> The resulting list must be sorted \<^prop>\<open>sorted (qs l)\<close>
-    \<^enum><+-> and must contain same elements \<^prop>\<open>\<forall>x. count (qs l) x = count l x\<close>
+    \<^enum><+-> The resulting list is sorted: \<^prop>\<open>sorted (qs l)\<close>
+    \<^enum><+-> and contains the same elements: \<^prop>\<open>\<forall>x. count (qs l) x = count l x\<close>
     \medskip
 
     \<open>\<forall>x. \<dots>\<close> means "for all \<open>x\<close>"
@@ -297,14 +316,115 @@ text \<open>\color{black}
     
     @{term [source] 
       \<open>count (filter (\<lambda>x. x \<le> p) l) x + count (filter (\<lambda>x. x > p) l) x\<close>} = \pause \<^term>\<open>count l x\<close>
+    \pause\smallskip\indent partitioning preserves elements
+      
+  \end{frame}
+
+  \thyfile{Demo}{Useful Properties}
   
+  
+  \begin{frame}{Induction}
+    To prove correctness of \<open>qs l\<close> for all \<open>l\<close>:
+      \<^descr>[base] show that \<open>qs []\<close> is correct
+      \<^descr>[step] show that \<open>qs (p#l)\<close> is correct,\\
+          \high{assuming} recursive calls are already correct (IH)
+  
+    \pause\medskip
+    Idea: Justify corrrectness, starting at leaves of call tree:
+    \medskip
+    
+    \definecolor{vgreen}{rgb}{.1,.6,.1}
+    \setbeamercolor{alerted text}{fg=vgreen}    
+    \begin{tikzpicture}[
+        level 1/.style={sibling distance=30mm},
+        level 2/.style={sibling distance=10mm}, 
+        level 3/.style={sibling distance=5mm}, 
+        auto
+      ]
+      \node {\alert<6->{$qs~[3,2,5,4,7]$}}[grow=right]
+        child {node {\alert<4->{$qs~[2]$}}
+          child {node {\alert<3->{$qs~[]$}}}
+          child {node {\alert<3->{$qs~[]$}}}
+        }
+        child {node {\alert<5->{$qs~[5,4,7]$}}
+          child {node {\alert<4->{$qs~[5]$}}
+            child {node {\alert<3->{$qs~[]$}}}
+            child {node {\alert<3->{$qs~[]$}}}
+          }
+          child {node {\alert<4->{$qs~[7]$}}
+            child {node {\alert<3->{$qs~[]$}}}
+            child {node {\alert<3->{$qs~[]$}}}
+          }
+        };
+    \end{tikzpicture}    
+  
+  \end{frame}
+    
+
+  \begin{frame}{Element Preservation}
+    \<open>count (qs l) x = count l x\<close>
+
+    Base: \<open>count (qs []) x = count [] x\<close>
+    \pause\medskip
+    
+    Step:\\\pause
+      Let \<open>l\<^sub>1 = filter (\<lambda>x. x \<le> p) l\<close> and \<open>l\<^sub>2 = filter (\<lambda>x. x > p) l\<close>\\\pause
+      IH: \<open>count (qs l\<^sub>1) x = count l\<^sub>1 x\<close> and \<open>count (qs l\<^sub>2) x = count l\<^sub>2 x\<close>\\\pause
+      Show: \<open>count (qs (p#l)) x = count (p#l) x\<close>\pause
+      
+      \<^item>[~]<+-> \<open>count (qs (p#l)) x\<close>
+      \<^item>[=]<+-> \<open>count (qs l\<^sub>1 @ [p] @ qs l\<^sub>2) x\<close>
+      \<^item>[=]<+-> \<open>count [p] x + count (qs l\<^sub>1) x + count (qs l\<^sub>2) x\<close>
+      \<^item>[=]<+-> \<open>count [p] x + count l\<^sub>1 x + count l\<^sub>2 x\<close> (IH)
+      \<^item>[=]<+-> \<open>count [p] x + count l x\<close>
+      \<^item>[=]<+-> \<open>count (p#l) x\<close>
+      
+  \end{frame}
+  
+  \thyfile{Demo}{Quicksort preserves Elements}
+  
+  \begin{frame}{Quicksort Sorts}
+    Set of elements in list \<^term>\<open>x\<in>set l = (count l x > 0)\<close>
+    \pause\medskip
+    
+    Obviously: \<^term>\<open>set (qs l) = set l\<close>
+    \pause\medskip
+    
+    When is list \<^term>\<open>l\<^sub>1@[p]@l\<^sub>2\<close> sorted?
+    \pause\medskip
+    
+    \<^term>\<open>sorted (l\<^sub>1@[p]@l\<^sub>2)\<close> iff \pause \\
+      \<^term>\<open>sorted l\<^sub>1 \<and> sorted l\<^sub>2\<close> \pause \\
+      and \pause \<^term>\<open>(\<forall>x\<in>set l\<^sub>1. x\<le>p) \<and> (\<forall>x\<in>set l\<^sub>2. p\<le>x)\<close>
+    \pause\medskip
+    
+    What do we know about element \<^term>\<open>x\<close> if \<^term>\<open>x \<in> set (filter P l)\<close>?
+    \pause\medskip
+    
+    \<^term>\<open>x \<in> set (filter P l) \<Longrightarrow> P x\<close>
   \end{frame}
   
   
+  \thyfile{Demo}{More useful Properties and Quicksort Sorts}
+ 
+  \begin{frame}{Conclusions}
+    Proved correct functional implementation of quicksort. \\\pause
+    Proof machine checked, using Isabelle/HOL.  
+    \pause\medskip
+    
+    Further material:
+    
+    Book: Concrete Semantics \<^url>\<open>http://www.concrete-semantics.org/\<close> \\
+    Lecture: Semantics of PL \<^url>\<open>http://www21.in.tum.de/teaching/semantik/WS1819/\<close>
+
+    \pause\medskip
+    \huge \center Thanks!
+      
+  \end{frame}
   
+   
 \<close>
-
-
+                               
 
 (*<*)
 end

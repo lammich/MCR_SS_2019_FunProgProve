@@ -258,57 +258,38 @@ begin
     
   subsection \<open>Quicksort preserves Elements\<close>
   (* Let's prove preservation of elements first *)
-  lemma qs_preserves_elements: "count (qs xs) = count xs"
+  lemma qs_preserves_elements: "count (qs xs) x = count xs x"
   proof (induction xs rule: qs.induct)
     (* Proof principle: Show correctness, assuming recursive calls are correct *)
   
     case 1 (* Empty list *)
-    show "count (qs []) = count []"
+    show "count (qs []) x = count [] x"
       apply (subst qs.simps) (* Definition of qs*)
-      .. (* Trivial *)
+      .. (* reflexivity *)
       
   next
     case (2 p l) (* Non-empty list *)
     
+    let ?l\<^sub>1 = "filter (\<lambda>x. x \<le> p) l"
+    let ?l\<^sub>2 = "filter (\<lambda>x. x > p) l"
+    
     (* Assume the recursive calls preserve the elements *)
-    assume 1: "count (qs (filter (\<lambda>x. x \<le> p) l)) = count (filter (\<lambda>x. x \<le> p) l)"
-       and 2: "count (qs (filter (\<lambda>x. x > p) l)) = count (filter (\<lambda>x. x > p) l)"
+    assume IH1: "count (qs ?l\<^sub>1) x = count ?l\<^sub>1 x"
+       and IH2: "count (qs ?l\<^sub>2) x = count ?l\<^sub>2 x"
     
     (* Show that this call preserves the elements *)   
-    show "count (qs (p # l)) = count (p # l)" proof
-      (* Extensionality: We show this per element *)
-      fix x
-      show "count (qs (p # l)) x = count (p # l) x" proof -
-        have "count (qs (p # l)) x 
-          = count (qs (filter (\<lambda>x. x \<le> p) l) @ [p] @ qs (filter (\<lambda>x. x > p) l)) x" 
-          (* Definition of qs *)
-          by simp
-        also have "\<dots> = 
-            count (qs (filter (\<lambda>x. x \<le> p) l)) x 
-          + count [p] x 
-          + count (qs (filter (\<lambda>x. x > p) l)) x"
-          (* count_append *)
-          by (simp add: count_append)
-        also have "\<dots> =   
-            count (filter (\<lambda>x. x \<le> p) l) x 
-          + count [p] x 
-          + count (filter (\<lambda>x. x > p) l) x"
-          (* Assumptions for recursive calls *)
-          by (simp add: 1 2)
-        also have "\<dots> = 
-            count [p] x 
-          + (count (filter (\<lambda>x. x \<le> p) l) x 
-             + count (filter (\<lambda>x. x > p) l) x)"
-          (* Reordering *)
-          by simp
-        also have "\<dots> = count [p] x + count l x"
-          (* count_filter_complete *)
-          by (simp add: count_filter_complete)
-        also have "\<dots> = count (p#l) x" 
-          (* Def of count *)
-          by simp
-        finally show "count (qs (p # l)) x = count (p # l) x" .  
-      qed
+    show "count (qs (p # l)) x = count (p # l) x" proof -
+      have "count (qs (p # l)) x = count (qs ?l\<^sub>1 @ [p] @ qs ?l\<^sub>2) x" 
+        by simp (* Def. of qs *)
+      also have "\<dots> = count [p] x + count (qs ?l\<^sub>1) x + count (qs ?l\<^sub>2) x"
+        by (simp add: count_append) (* count_append, commutativity of + *)
+      also have "\<dots> = count [p] x + (count (?l\<^sub>1) x + count (?l\<^sub>2) x)"
+        by (simp add: IH1 IH2) (* Induction hypothesis *)
+      also have "\<dots> = count [p] x + count l x"
+        by (simp add: count_filter_complete) (* count_filter_complete *)
+      also have "\<dots> = count (p#l) x" 
+        by simp (* Def of count *)
+      finally show "count (qs (p # l)) x = count (p # l) x" .  
     qed
   qed          
   
@@ -372,39 +353,9 @@ begin
     sorted l\<^sub>1 \<and> sorted l\<^sub>2 \<and> (\<forall>x\<in>set l\<^sub>1. x\<le>p) \<and> (\<forall>x\<in>set l\<^sub>2. p\<le>x))"
     by (fastforce simp: sorted_append)
 
-  (** BACK TO SLIDES **)  
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+  lemma in_set_filter: "x\<in>set (filter P xs) \<Longrightarrow> P x" by simp 
+    (* A \<Longrightarrow> B   if A holds then B holds *)
     
   subsection \<open>Quicksort Sorts\<close>  
       
@@ -416,35 +367,36 @@ begin
     
     (* Introduce shortcut notation. Isabelle still sees expanded term, 
       it's just syntax sugar to make terms more concise to write! *)
-    let ?qs1 = "qs (filter (\<lambda>x. x \<le> p) l)"
-    let ?qs2 = "qs (filter (\<lambda>x. x > p) l)"
+    let ?l\<^sub>1 = "filter (\<lambda>x. x \<le> p) l"
+    let ?l\<^sub>2 = "filter (\<lambda>x. x > p) l"
     
     (* Assume that recursive calls sort *)
-    assume 1: "sorted ?qs1" and 2: "sorted ?qs2"
+    assume IH1: "sorted (qs ?l\<^sub>1)" and IH2: "sorted (qs ?l\<^sub>2)"
     
     (* Show that this call sorts *)
     show "sorted (qs (p#l))" proof -
-      have "sorted (qs (p#l)) = sorted (?qs1 @ [p] @ ?qs2)"
+      have "sorted (qs (p#l)) = sorted (qs ?l\<^sub>1 @ [p] @ qs ?l\<^sub>2)"
        (* Def. of qs *)
         by simp
       also have "\<dots> 
-        = (sorted ?qs1 \<and> sorted ?qs2 \<and> (\<forall>x\<in>set ?qs1. x\<le>p) \<and> (\<forall>x\<in>set ?qs2. p\<le>x))"
+        = (sorted (qs ?l\<^sub>1) \<and> sorted (qs ?l\<^sub>2) 
+          \<and> (\<forall>x\<in>set (qs ?l\<^sub>1). x\<le>p) \<and> (\<forall>x\<in>set (qs ?l\<^sub>2). p\<le>x))"
         (* sorted_lel *)
         by (simp add: sorted_lel[simplified])
-      also have "\<dots> = ((\<forall>x\<in>set ?qs1. x\<le>p) \<and> (\<forall>x\<in>set ?qs2. p\<le>x))" 
-        (* Assumption that recursive calls sort! *)
-        by (simp add: 1 2)
-      also have "\<dots>" proof
-        (* It remains to show that "set ?qs1" is \<le> pivot, and "set qs2" \<ge> pivot *)
-        have "set ?qs1 = set (filter (\<lambda>x. x \<le> p) l)" by (simp add: qs_preserves_set)
-          (* Set of elements preserved by qs *)
-        also have "\<dots> = {x \<in> set l. x\<le>p}" by simp
-          (* Elements of filtered list are elements of original list that satisfy condition *)
-        also have "\<forall>x\<in>{x \<in> set l. x\<le>p}. x\<le>p" by auto
-        finally show "\<forall>x\<in>set ?qs1. x\<le>p" .
+      also have "\<dots>" proof (intro conjI)
+        show "sorted (qs ?l\<^sub>1)" using IH1 .
+        show "sorted (qs ?l\<^sub>2)" using IH2 .
         
-        show "\<forall>x\<in>set ?qs2. x\<ge>p" by (auto simp: qs_preserves_set) 
-          (* Other direction: analogously. Done more concisely here. *)
+        show "\<forall>x\<in>set (qs ?l\<^sub>1). x\<le>p" proof
+          fix x 
+          assume "x\<in>set (qs ?l\<^sub>1)" 
+          hence "x\<in>set ?l\<^sub>1" by (simp add: qs_preserves_set)
+          thus "x\<le>p" by (rule in_set_filter)
+        qed  
+       
+        show "\<forall>x\<in>set (qs ?l\<^sub>2). x\<ge>p" 
+          by (auto simp: qs_preserves_set) (* Analogously, thus written more concise here *)
+          
       qed  
       finally show "sorted (qs (p # l))" by auto
     qed
@@ -462,6 +414,6 @@ begin
   theorem qs_correct: "correct_sorting qs"
     unfolding correct_sorting_def
     using qs_preserves_elements qs_sorts 
-    by simp
+    by auto
 
 end
