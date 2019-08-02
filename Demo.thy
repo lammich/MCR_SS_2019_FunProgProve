@@ -24,6 +24,10 @@ begin
   | "leq4 (x#l) = (if x\<le>4 then x # leq4 l else leq4 l)"  
 
   (*
+  fun f :: "nat \<Rightarrow> nat" where "f x = (if x<65 then f (x+1) else 8)"
+  *)
+  
+  (*
     Function type:  nat list \<Rightarrow> nat list
       Function that takes a list argument, and returns a list
   
@@ -48,6 +52,12 @@ begin
   
   thm filter.simps
   value "filter (\<lambda>x. x\<le>4) [1::nat,42,7,5,2,6,3]"
+  
+  value "filter (\<lambda>s::string. size s < 3) [''a'',''abcd'',''ab'']"
+  
+  value "CHR ''a''"
+  
+  
   
   (*
     \<lambda>x.    define anonymous function, with parameter x
@@ -97,6 +107,7 @@ begin
   subsection \<open>Sortedness Check\<close>
   (* Many possible definitions, a straightforward one is: *)
   term sorted
+  thm sorted.simps
   thm sorted.simps(1) sorted1 sorted2
 
   value "sorted [1,2,2,3,4::nat]"  
@@ -304,9 +315,9 @@ begin
         and to write proofs at a good balance of conciseness and readability!
       
   *)
-  lemma "count (qs xs) = count xs"
+  lemma "count (qs xs) x = count xs x"
     by (induction xs rule: qs.induct) 
-       (auto simp: fun_eq_iff count_append count_filter_complete)
+       (auto simp: count_append count_filter_complete)
   
   (** BACK TO SLIDES **)  
        
@@ -356,6 +367,10 @@ begin
     
   lemma in_set_filter: "x\<in>set (filter P xs) \<Longrightarrow> P x" by simp 
     (* A \<Longrightarrow> B   if A holds then B holds *)
+    
+  lemma "x\<in>set (filter P xs) = (P x \<and> x\<in>set xs)"
+    by auto
+    
     
   subsection \<open>Quicksort Sorts\<close>  
       
